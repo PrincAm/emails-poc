@@ -1,12 +1,9 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
 import express from "express";
 import bodyParser from "body-parser";
-import { ServerStyleSheet, StyleSheetManager } from "styled-components";
-import inlineCss from "inline-css";
 
-import App from "./client/App";
-import Html from "./client/Html";
+import { renderTemplateSc } from "./client/styledComponents";
+import { renderTemplateMjml } from "./client/mjml";
 
 const mailchimpClient = require("@mailchimp/mailchimp_transactional")(""); // TODO add API key
 
@@ -16,32 +13,15 @@ const jsonParser = bodyParser.json();
 
 // http://localhost:3000/template
 server.post("/template", jsonParser, async (req, res) => {
-  const sheet = new ServerStyleSheet();
-  const body = ReactDOMServer.renderToStaticMarkup(
-    <StyleSheetManager sheet={sheet.instance}>
-      <App name={req.body.name} />
-    </StyleSheetManager>
-  );
-  const styles = sheet.getStyleTags();
-  const title = "Server side Rendering with Styled Components";
-
-  const html = await inlineCss(
-    Html({
-      body,
-      styles,
-      title,
-    }),
-    {
-      url: "empty",
-    }
-  );
+  const { useMjml } = req.body;
+  const html = useMjml ? renderTemplateMjml(req) : await renderTemplateSc(req);
 
   const response = await mailchimpClient.messages.send({
     message: {
       html: html,
       subject: "Email service",
-      from_email: "", // TODO add email with verified domain
-      to: [{ email: "" }], // TODO add email with verified domain
+      from_email: "",
+      to: [{ email: "" }],
     },
   });
 

@@ -14,3 +14,10 @@ yarn start // start server
 ```
 POST http://localhost:3000/template
 ```
+request body
+```
+{
+    "name": "John Doe",
+    "useMjml": true
+}
+```
